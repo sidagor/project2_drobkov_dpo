@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "project2_drobkov_dpo"
+version = "0.1.0"
+description = "Primitive database console application"
+authors = ["Bogdan Drobkov <0brotishka0@gmail.com>"]
+readme = "README.md"
+packages = [
+    { include = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+prettytable = "^3.9.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.1.6"
+
+[tool.poetry.scripts]
+project = "src.primitive_db.main:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
