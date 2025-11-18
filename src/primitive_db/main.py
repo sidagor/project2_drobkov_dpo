@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-from .engine import welcome
+from .engine import run
 
 
 def main():
     """Основная функция приложения"""
-    welcome()
+    run()
 
 
 if __name__ == "__main__":

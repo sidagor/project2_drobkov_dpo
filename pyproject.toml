@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "project2_drobkov_dpo"
+name = "project2-drobkov-dpo"
 version = "0.1.0"
 description = "Primitive database console application"
 authors = ["Bogdan Drobkov <0brotishka0@gmail.com>"]
@@ -17,7 +17,7 @@ prompt = "^0.4.1"
 ruff = "^0.14.5"
 
 [tool.poetry.scripts]
-project = "src.primitive_db.main:main"
+database = "src.primitive_db.main:main"
 
 [tool.ruff]
 line-length = 88
