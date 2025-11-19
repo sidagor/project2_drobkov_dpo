@@ -1,4 +1,106 @@
+
+from .utils import load_table_data, save_table_data
+
 SUPPORTED_TYPES = {"int", "str", "bool"}
+
+def insert(metadata, table_name, values):
+    """Добавляет новую запись в таблицу"""
+    table_info = metadata.get(table_name)
+    if not table_info:
+        print(f'Ошибка: Таблица "{table_name}" не существует.')
+        return None
+
+    columns = table_info["columns"][1:]  
+    if len(values) != len(columns):
+        print("Ошибка: количество значений не соответствует количеству столбцов.")
+        return None
+
+    data = load_table_data(table_name)
+
+    new_id = max([row["ID"] for row in data], default=0) + 1
+    record = {"ID": new_id}
+
+    for (col_name, col_type), value in zip(columns, values):
+        try:
+            if col_type == "int":
+                value = int(value)
+            elif col_type == "float":
+                value = float(value)
+            elif col_type == "bool":
+                value = bool(value)
+            elif col_type == "str":
+                value = str(value)
+            else:
+                raise ValueError(f"Неизвестный тип {col_type}")
+        except ValueError:
+            print(f"Ошибка: значение '{value}' не соответствует типу {col_type}")
+            return None
+        record[col_name] = value
+
+    data.append(record)
+    save_table_data(table_name, data)
+    print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
+    return data
+
+def select(table_data, table_info, where_clause=None):
+    """Возвращает записи таблицы, фильтруя по where_clause"""
+    if not table_data:
+        return []
+    if not where_clause:
+        return table_data
+
+    filtered = []
+    for row in table_data:
+        if all(row.get(k) == v for k, v in where_clause.items()):
+            filtered.append(row)
+    return filtered
+    
+def update(table_data, set_clause, where_clause):
+    """Обновляет записи по условию"""
+    updated_count = 0
+    updated_ids = []
+    for row in table_data:
+        match = True
+        for col, val in where_clause.items():
+            if str(row.get(col)) != str(val):
+                match = False
+                break
+        if match:
+            for col, val in set_clause.items():
+                row[col] = val
+            updated_count += 1
+            updated_ids.append(row.get('ID'))
+    if updated_count == 0:
+        print("Записи не найдены для обновления.")
+    else:
+        for record_id in updated_ids:
+            print(f'Запись с ID={record_id} в таблице успешно обновлена.')
+    
+    return table_data
+
+def delete(table_data, where_clause):
+    """Удаляет записи по условию"""
+    remaining = []
+    deleted_count = 0
+    deleted_ids = []
+    for row in table_data:
+        match = True
+        for col, val in where_clause.items():
+            if str(row.get(col)) != str(val):
+                match = False
+                break
+        if match:
+            deleted_count += 1
+            deleted_ids.append(row.get('ID'))
+        else:
+            remaining.append(row)
+    if deleted_count == 0:
+        print("Записи не найдены для удаления.")
+    else:
+        for record_id in deleted_ids:
+            print(f'Запись с ID={record_id} успешно удалена из таблицы')
+    return remaining
+
 
 def create_table(metadata, table_name, columns):
     """Cоздает новую таблицу в метаданных."""
