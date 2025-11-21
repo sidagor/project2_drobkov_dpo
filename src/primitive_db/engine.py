@@ -3,7 +3,16 @@ import shlex
 import prompt
 from prettytable import PrettyTable
 
-from .core import create_table, delete, drop_table, insert, list_tables, select, update
+from .core import (
+    clear_cache,
+    create_table,
+    delete,
+    drop_table,
+    insert,
+    list_tables,
+    select,
+    update,
+)
 from .parser import parse_insert, parse_set_clause, parse_where_clause
 from .utils import load_metadata, load_table_data, save_metadata, save_table_data
 
@@ -159,8 +168,12 @@ def run():
                 continue
 
             data = load_table_data(table_name)
-            data = delete(data, where_clause)
-            save_table_data(table_name, data)
+            new_data = delete(data, where_clause)  
+            if new_data is not None:               
+                save_table_data(table_name, new_data)
+            else:
+                print("Удаление не выполнено, данные не изменены.")
+
          
         elif command == "info":
             table_name = args[1]
@@ -177,6 +190,10 @@ def run():
 
         elif command == "list_tables":
             list_tables(metadata)
+
+        elif command == "clear_cache":
+            clear_cache()
+            print("Кэш запросов очищен")    
 
         else:
             print(f"Функции '{command}' нет. Попробуйте снова.")

@@ -61,7 +61,17 @@ https://asciinema.org/a/9zZZiJ7grd8A9LfpPUGAE3RWa
 <command> delete from <имя_таблицы> where <столбец> = <значение> - удалить запись.
 <command> info <имя_таблицы> - вывести информацию о таблице.
 
-## Демонстрация операция с данными 
+## Демонстрация операций с данными 
 
 https://asciinema.org/a/iPZoGLbg5FrzDY5ooL6yrcQQu
+
+## Обработка ошибок и подтверждение операции 
+
+- Автоматическая обработка ошибок через декоратор `@handle_db_errors`
+- Интерактивное подтверждение через декоратор `@confirm_action` 
+
+## Демонстрация декораторов 
+
+https://asciinema.org/a/QeUaRofrfrieVWensdj5CMrI8
+
 

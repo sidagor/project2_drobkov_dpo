@@ -1,8 +1,12 @@
 
+from src.decorator import confirm_action, get_cacher, handle_db_errors, log_time
+
 from .utils import load_table_data, save_table_data
 
 SUPPORTED_TYPES = {"int", "str", "bool"}
 
+@handle_db_errors
+@log_time
 def insert(metadata, table_name, values):
     """Добавляет новую запись в таблицу"""
     table_info = metadata.get(table_name)
@@ -21,20 +25,17 @@ def insert(metadata, table_name, values):
     record = {"ID": new_id}
 
     for (col_name, col_type), value in zip(columns, values):
-        try:
-            if col_type == "int":
-                value = int(value)
-            elif col_type == "float":
-                value = float(value)
-            elif col_type == "bool":
-                value = bool(value)
-            elif col_type == "str":
-                value = str(value)
-            else:
-                raise ValueError(f"Неизвестный тип {col_type}")
-        except ValueError:
-            print(f"Ошибка: значение '{value}' не соответствует типу {col_type}")
-            return None
+        if col_type == "int":
+            value = int(value)
+        elif col_type == "float":
+            value = float(value)
+        elif col_type == "bool":
+            value = bool(value)
+        elif col_type == "str":
+            value = str(value)
+        else:
+            raise ValueError(f"Неизвестный тип {col_type}")
+        
         record[col_name] = value
 
     data.append(record)
@@ -42,6 +43,8 @@ def insert(metadata, table_name, values):
     print(f'Запись с ID={new_id} успешно добавлена в таблицу "{table_name}".')
     return data
 
+@handle_db_errors
+@log_time
 def select(table_data, table_info, where_clause=None):
     """Возвращает записи таблицы, фильтруя по where_clause"""
     if not table_data:
@@ -49,12 +52,19 @@ def select(table_data, table_info, where_clause=None):
     if not where_clause:
         return table_data
 
-    filtered = []
-    for row in table_data:
-        if all(row.get(k) == v for k, v in where_clause.items()):
-            filtered.append(row)
-    return filtered
+    cache_key = f"select_{id(table_info)}_{str(where_clause)}"
+    cacher = get_cacher()
+
+    def execute_select():
+        filtered = []
+        for row in table_data:
+            if all(row.get(k) == v for k, v in where_clause.items()):
+                filtered.append(row)
+        return filtered
     
+    return cacher(cache_key, execute_select)
+
+@handle_db_errors
 def update(table_data, set_clause, where_clause):
     """Обновляет записи по условию"""
     updated_count = 0
@@ -77,7 +87,9 @@ def update(table_data, set_clause, where_clause):
             print(f'Запись с ID={record_id} в таблице успешно обновлена.')
     
     return table_data
-
+ 
+@handle_db_errors
+@confirm_action("удаление записей") 
 def delete(table_data, where_clause):
     """Удаляет записи по условию"""
     remaining = []
@@ -101,7 +113,7 @@ def delete(table_data, where_clause):
             print(f'Запись с ID={record_id} успешно удалена из таблицы')
     return remaining
 
-
+@handle_db_errors
 def create_table(metadata, table_name, columns):
     """Cоздает новую таблицу в метаданных."""
 
@@ -142,6 +154,8 @@ def create_table(metadata, table_name, columns):
 
     return metadata
 
+@confirm_action("удаление таблицы") 
+@handle_db_errors
 def drop_table(metadata, table_name):
     """Проверяет существование таблицы и  удаляет таблицу из метаданных"""
 
@@ -154,6 +168,7 @@ def drop_table(metadata, table_name):
 
     return metadata
 
+@handle_db_errors
 def list_tables(metadata):
     """Показывает список всех таблиц."""
     if not metadata:
@@ -162,3 +177,8 @@ def list_tables(metadata):
 
     for table_name in metadata.keys():
         print(f"- {table_name}")
+
+def clear_cache():
+   """Очистка кэша запросов"""
+   cacher = get_cacher()
+   cacher.clear()       
