@@ -51,5 +51,4 @@ dmypy.json
 # Asciinema recordings
 *.cast
 
-# Database files
-*.json
+ 
